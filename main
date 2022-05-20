@@ -1,0 +1,71 @@
+2.15 KB
+   
+from keras import datasets, Sequential
+from keras.layers import Conv2D, Dense, MaxPooling2D, Flatten
+import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix
+import numpy as np
+from keras.utils import np_utils
+from keras.datasets import cifar10
+import matplotlib.pyplot as plt
+from tensorflow.keras.optimizers import Adam
+from keras.preprocessing import  image
+from keras.preprocessing.image import load_img, img_to_array,array_to_img,ImageDataGenerator
+import numpy as np
+import os
+import cv2 as cv
+
+dir_folder = '/content/drive/MyDrive/TraiCay/Train'
+path_img = []
+labels = []
+x_train = []
+y_train = []
+x_test = []
+y_test =[]
+
+# tạo lí tạo dữ liệu training
+for i in os.listdir(dir_folder):
+  path = os.path.join(dir_folder, i)
+  labels.append(str(i))
+  for j in os.listdir(path):
+    path_img.append(os.path.join(path,j))
+    y_train.append(labels.index(i))
+    img = image.load_img(os.path.join(path, j), target_size=(100,100)) 
+    img = img_to_array(img)
+    img = img.reshape(100,100,3) 
+    img = img.astype('float32')
+    img = img/255
+    x_train.append(img)
+
+#xử lí dữ liệu training
+x_train = np.array(x_train)
+y_train = np.array(y_train)
+y_train = np_utils.to_categorical(y_train, 11)
+
+#tạo model
+model = Sequential()
+model.add(Conv2D(filters=32,
+                 kernel_size=(10,10),
+                 activation='relu',
+                 kernel_initializer='he_uniform',
+                 padding='same',
+                 input_shape=(100,100,3),
+                 strides=(2,2)))
+
+model.add(MaxPooling2D(2,2))
+model.add(Conv2D(filters=64,
+                 kernel_size=(2,2), 
+                 activation='relu',
+                 kernel_initializer='he_uniform',
+                 padding='same'))
+
+model.add(MaxPooling2D(2,2))
+model.add(Flatten())
+model.add(Dense(1028, activation='relu',input_shape=(30000,), name='layer1')) 
+model.add(Dense(1028, activation='relu', name='layer2'))
+model.add(Dense(512, activation='relu', name='layer3'))
+model.add(Dense(11, activation='softmax', name='layer4'))
+model.summary()
+
+model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=['accuracy'])
+history = model.fit(x_train,y_train,epochs=10)
